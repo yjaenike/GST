@@ -55,6 +55,7 @@ class Edge():
 
     def __repr__(self):
         return "Value: {}, From Node: {}, To Node: {}\n".format(self.value,self.from_node.identifier,self.to_node.identifier)
+        
 class GenralizedSuffixTree():
   """
   A naiv implementation of the generalized suffix tree
@@ -266,16 +267,45 @@ class GenralizedSuffixTree():
                return True, [num +1 for num in current_node.part_of_string]
           else:
               return False, []
+              
+              
+  def search_adapter(self):
+	stack = [] 
+	current_node = self.root
+	current_edge = None
+	max_string = 0
+	
+	#Initialize the stack
+	for edges in self.root.edges :
+		stack.append(edges.to_node)
+	
+	current_node = stack[-1]
+	current_edge = current_node.edges[0]
+	   
+	while stack != [] :
+		
+		for edge in current_node.edges :
+			stack.append(edge.to_node)
+		
+			if edge.end_edge : #if we reach a leave : we update the max 
+				
+				if max_string < len(current_node.part_of_string) :
+					max_string = len(current_node.part_of_string)
+				
+		current_node = stack[-1]
+		current_edge = current_node.edges[0] 
+	   
 
 def main():
+    """
     with open(str(sys.argv[1]),"r") as seq:
         Sequences = seq.readlines()
     Sequences = [seq[:-1] for seq in Sequences]
-
+	
     tree = GenralizedSuffixTree(Sequences).construct_tree()
 
     tree.search_all_prefixes(str(sys.argv[2]))
-
+	"""
 
 
 if __name__ == "__main__":
