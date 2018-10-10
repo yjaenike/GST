@@ -1,4 +1,5 @@
 import sys
+import numpy as np
 class Node():
   """A node in the suffix tree.
 
@@ -234,7 +235,7 @@ class GenralizedSuffixTree():
       for prefix in self.prefix(pattern):
           hit , in_seq = self.search(prefix)
           if hit:
-              print(prefix," found in",len(in_seq)," Sequences.")
+              print(prefix," found in",len(np.unique(in_seq))," Sequences. Seq: ",np.unique(in_seq))
 
   def search(self, pattern):
       """
@@ -262,7 +263,7 @@ class GenralizedSuffixTree():
                   return False , []
 
           if current_edge.end_edge:
-               return True, "part of : {}".format([num +1 for num in current_node.part_of_string])
+               return True, [num +1 for num in current_node.part_of_string]
           else:
               return False, []
 
