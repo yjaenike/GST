@@ -9,6 +9,7 @@ class Node():
   def __init__(self,value = "$"):
       self.part_of_string = []
       self.edges = []
+      self.prev_edge = None
       self.identifier = value
 
   def set_part_of_string(self,num):
@@ -22,6 +23,11 @@ class Node():
       the edge set of the node
       """
       self.edges.append(edge)
+  
+   
+  def set_prev_edges(self,edge):
+      self.prev_edge = edge
+
 
   def __repr__(self):
       return "Node : {}\n  Part of string: {} \n  Children: {}".format(self.identifier,self.part_of_string,self.edges)
@@ -55,6 +61,7 @@ class Edge():
 
     def __repr__(self):
         return "Value: {}, From Node: {}, To Node: {}\n".format(self.value,self.from_node.identifier,self.to_node.identifier)
+
 class GenralizedSuffixTree():
   """
   A naiv implementation of the generalized suffix tree
@@ -89,6 +96,7 @@ class GenralizedSuffixTree():
       suffix_length=len(suffix)
 
       current_node = self.root
+      current_edge = None
 
       for number, char in enumerate(suffix):
 
@@ -103,10 +111,14 @@ class GenralizedSuffixTree():
 
               if suffix_length == number+1:
                   child_node.set_part_of_string(part_of_string)
+                  child_node.set_prev_edges(current_edge)
                   new_edge = Edge(char,current_node,child_node,True)
               else:
                   new_edge = Edge(char,current_node,child_node)
+                  child_node.set_prev_edges(current_edge)
+                  child_node.set_part_of_string(part_of_string) #???
               current_node.set_edges(new_edge)
+              current_edge=new_edge
               current_node= child_node
 
           else:
@@ -118,6 +130,11 @@ class GenralizedSuffixTree():
                           current_node.set_part_of_string(part_of_string)
                       else:
                           current_node = edge.to_node
+
+        ########################### BIG SHIT ####################### 
+                          parts = [value for value in current_node.part_of_string]
+                          if part_of_string not in parts:
+                            current_node.set_part_of_string(part_of_string) #???
 
                       break
 
@@ -267,44 +284,68 @@ class GenralizedSuffixTree():
           else:
               return False, []
 
+
   def search_adapter(self):
       stack = [] 
       current_node = self.root
       current_edge = None
       max_string = 0
-      pattern = ""
-	
+      max_edge = None
+    
      #Initialize the stack
+      
       for edges in current_node.edges :
-      	stack.append(edges.to_node)
-
-      current_node = stack.pop()
-      current_edge = current_node.edges[0]
-      pattern=pattern+current_edge.value
-	   
+        stack.append(edges.to_node)
+      
+ 
       while stack != [] :
-		
-      	for edge in current_node.edges :
-      		stack.append(edge.to_node)
-		
-      		if edge.end_edge : #if we reach a leave : we update the max 
-				
-      			if max_string < len(current_node.part_of_string) :
-      				max_string = len(current_node.part_of_string)
-				
-      		current_node = stack.pop()
-      		current_edge = current_node.edges[0] 
+        
+        current_node = stack.pop()
 
-		
-      return False
-	   
+        """
+        print("Stack :",stack)
+        print("current node is ",current_node)
+        """
+
+        #we append all the next nodes to the stack
+        for edge in current_node.edges :
+            stack.append(edge.to_node)
+            
+            if edge.end_edge : #if we reach a leave : we update the max 
+                #print("end edge")
+                if max_string < len(current_node.part_of_string) :
+                    max_string = len(current_node.part_of_string)
+                    max_edge=edge
+                    #print("Max string is",max_string)
+                    #print(max_edge)
+        
+
+      print(self.backtrack_adapter(max_edge))
+      return max_string
+
+
+  def backtrack_adapter(self,max_edge) :
+    
+    adapter = ""
+    current_edge = max_edge
+
+    while current_edge != None :
+        adapter += current_edge.value
+        current_edge = current_edge.from_node.prev_edge
+
+    return adapter[::-1]
+
+
+
 
 def main():
-	
-  tree = GenralizedSuffixTree(["ABA","ABB","AABA","BA"])
-	
-  #print(tree.search("AB"))
-  	
+ 
+  tree = GenralizedSuffixTree(["CABA","LABA","ABA","LIBA"]).construct_tree()
+
+  print(tree.search_adapter())
+  
+
+  
   """
   with open(str(sys.argv[1]),"r") as seq:
   Sequences = seq.readlines()
