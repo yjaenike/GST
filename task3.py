@@ -111,11 +111,11 @@ class GenralizedSuffixTree():
 
               if suffix_length == number+1:
                   child_node.set_part_of_string(part_of_string)
-                  child_node.set_prev_edges(current_edge)
                   new_edge = Edge(char,current_node,child_node,True)
+                  child_node.set_prev_edges(new_edge)
               else:
                   new_edge = Edge(char,current_node,child_node)
-                  child_node.set_prev_edges(current_edge)
+                  child_node.set_prev_edges(new_edge)
                   child_node.set_part_of_string(part_of_string) #???
               current_node.set_edges(new_edge)
               current_edge=new_edge
@@ -127,9 +127,11 @@ class GenralizedSuffixTree():
                       if suffix_length == number+1:
                           edge.end_edge = True
                           current_node = edge.to_node
+                          current_edge=edge
                           current_node.set_part_of_string(part_of_string)
                       else:
                           current_node = edge.to_node
+                          current_edge=edge
 
         ########################### BIG SHIT ####################### 
                           parts = [value for value in current_node.part_of_string]
@@ -290,7 +292,7 @@ class GenralizedSuffixTree():
       current_node = self.root
       current_edge = None
       max_string = 0
-      max_edge = None
+      max_edge = []
     
      #Initialize the stack
       
@@ -315,12 +317,16 @@ class GenralizedSuffixTree():
                 #print("end edge")
                 if max_string < len(current_node.part_of_string) :
                     max_string = len(current_node.part_of_string)
-                    max_edge=edge
+                    max_edge=[]
+                    max_edge.append(edge)
                     #print("Max string is",max_string)
                     #print(max_edge)
+                elif max_string == len(current_node.part_of_string) :
+                    max_edge.append(edge)
         
-
-      print(self.backtrack_adapter(max_edge))
+      for edge in max_edge :
+        print(self.backtrack_adapter(edge))
+      
       return max_string
 
 
@@ -340,7 +346,7 @@ class GenralizedSuffixTree():
 
 def main():
  
-  tree = GenralizedSuffixTree(["CABA","LABA","ABA","LIBA"]).construct_tree()
+  tree = GenralizedSuffixTree(["BONJOUR","ABAJOUR","CAJOUR","REJOUR"]).construct_tree()
 
   print(tree.search_adapter())
   
