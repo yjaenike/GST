@@ -116,7 +116,7 @@ class GenralizedSuffixTree():
               else:
                   new_edge = Edge(char,current_node,child_node)
                   child_node.set_prev_edges(new_edge)
-                  child_node.set_part_of_string(part_of_string) #???
+                  #child_node.set_part_of_string(part_of_string) #???
               current_node.set_edges(new_edge)
               current_edge=new_edge
               current_node= child_node
@@ -132,11 +132,11 @@ class GenralizedSuffixTree():
                       else:
                           current_node = edge.to_node
                           current_edge=edge
-
+                      """
         ########################### BIG SHIT ####################### 
-                          parts = [value for value in current_node.part_of_string]
-                          if part_of_string not in parts:
-                            current_node.set_part_of_string(part_of_string) #???
+                      if part_of_string not in current_node.part_of_string:
+                        current_node.set_part_of_string(part_of_string) #???
+                      """
 
                       break
 
@@ -286,13 +286,14 @@ class GenralizedSuffixTree():
           else:
               return False, []
 
-
+# A AMELIORER : ARGUMENT EN PLUS MIN APPEARANCE ET STACK QUI SAUVE TOUS LES POSSIBLES
   def search_adapter(self):
       stack = [] 
       current_node = self.root
       current_edge = None
       max_string = 0
-      max_edge = []
+      max_which_strings = []
+      adapter_seq = ""
     
      #Initialize the stack
       
@@ -312,22 +313,26 @@ class GenralizedSuffixTree():
         #we append all the next nodes to the stack
         for edge in current_node.edges :
             stack.append(edge.to_node)
+            #print("Stack :",stack)
+            #print("current node is ",current_node)
             
             if edge.end_edge : #if we reach a leave : we update the max 
                 #print("end edge")
-                if max_string < len(current_node.part_of_string) :
-                    max_string = len(current_node.part_of_string)
-                    max_edge=[]
-                    max_edge.append(edge)
-                    #print("Max string is",max_string)
-                    #print(max_edge)
-                elif max_string == len(current_node.part_of_string) :
-                    max_edge.append(edge)
-        
-      for edge in max_edge :
-        print(self.backtrack_adapter(edge))
+                if max_string < len(edge.to_node.part_of_string) :
+                    max_string = len(edge.to_node.part_of_string)
+                    max_which_string = edge.to_node.part_of_string
+                    adapter_seq=self.backtrack_adapter(edge)
+                    #print("Max string is",max_string,adapter_seq)
+                    #print(current_node)
+
+                elif max_string == len(edge.to_node.part_of_string) :
+                    new = self.backtrack_adapter(edge)
+
+                    if len(new)>len(adapter_seq) :
+                      max_which_string = edge.to_node.part_of_string
+                      adapter_seq=new
       
-      return max_string
+      return (adapter_seq, max_which_string,max_string)
 
 
   def backtrack_adapter(self,max_edge) :
@@ -340,27 +345,48 @@ class GenralizedSuffixTree():
         current_edge = current_edge.from_node.prev_edge
 
     return adapter[::-1]
+  
+def remove_adapter(adapter, which_sequences, sequences) :
+
+    len_adapter = len(adapter)
+    i = 0
+
+    for seq in sequences:
+      
+      if i in which_sequences :  
+        sequences[i] = seq[0:len(seq)-len_adapter]
+      i+=1
+
+    return sequences
+        
 
 
 
 
 def main():
- 
-  tree = GenralizedSuffixTree(["BONJOUR","ABAJOUR","CAJOUR","REJOUR"]).construct_tree()
-
-  print(tree.search_adapter())
-  
-
   
   """
+  sequences = ["QUICHE","BONJOUR","ABAJOUR","CAJOUR","DORMIR","LOL"]
+  tree = GenralizedSuffixTree(sequences).construct_tree()
+  search = tree.search_adapter()
+  print(search)
+  sequences_without_adapter = remove_adapter(search[0],search[1], sequences)
+  print(sequences_without_adapter)
+  """
+  
+  
   with open(str(sys.argv[1]),"r") as seq:
-  Sequences = seq.readlines()
+    Sequences = seq.readlines()
+
   Sequences = [seq[:-1] for seq in Sequences]
 
-  tree = GenralizedSuffixTree(Sequences).construct_tree()
-
-  tree.search_all_prefixes(str(sys.argv[2]))
-  """
+  tree = GenralizedSuffixTree(Sequences[0:100000]).construct_tree()
+  search = tree.search_adapter()
+  print("Adapter : ",search[0],"appears in ",search[2]," sequences")
+  sequences_without_adapter = remove_adapter(search[0],search[1], Sequences[0:100000])
+  #print(sequences_without_adapter)
+ 
+  
 
 if __name__ == "__main__":
   main()
